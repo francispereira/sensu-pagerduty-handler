@@ -173,10 +173,10 @@ func Test_GetDetailsTemplate(t *testing.T) {
 	// Test newline in check output with JSON details template
 	config.detailsFormat = "json"
 	config.detailsTemplate = `{"Output": {{ toJSON .Check.Output }}}`
-	event.Check.Output = "bar\nxaz\n"
+	event.Check.Output = `bar\nxaz\n`
 	details, err = getDetails(event)
 	assert.Nil(t, err)
-	assert.Equal(t, map[string]interface{}{"Output": "bar\nxaz\n"}, details)
+	assert.Equal(t, map[string]interface{}{"Output": "bar\\nxaz\\n"}, details)
 }
 
 func Test_GetDetailsObj(t *testing.T) {
