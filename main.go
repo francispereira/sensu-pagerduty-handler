@@ -422,6 +422,10 @@ func manageIncident(event *corev2.Event, token string) error {
 }
 
 func getPagerDutyDedupKey(event *corev2.Event) (string, error) {
+	if strings.Contains(config.dedupKeyTemplate, "||.") {
+		config.dedupKeyTemplate = strings.ReplaceAll(config.dedupKeyTemplate, "||.", "{{.")
+		config.dedupKeyTemplate = strings.ReplaceAll(config.dedupKeyTemplate, "||", "}}")
+	}
 	return templates.EvalTemplate("dedupKey", config.dedupKeyTemplate, event)
 }
 
@@ -478,6 +482,10 @@ func parseStatusMap(statusMapJSON string) (map[uint32]string, error) {
 }
 
 func getSummary(event *corev2.Event) (string, error) {
+	if strings.Contains(config.summaryTemplate, "||.") {
+		config.summaryTemplate = strings.ReplaceAll(config.summaryTemplate, "||.", "{{.")
+		config.summaryTemplate = strings.ReplaceAll(config.summaryTemplate, "||", "}}")
+	}
 	summary, err := templates.EvalTemplate("summary", config.summaryTemplate, event)
 	if err != nil {
 		return "", fmt.Errorf("failed to evaluate template %s: %v", config.summaryTemplate, err)
@@ -492,6 +500,10 @@ func getSummary(event *corev2.Event) (string, error) {
 
 func getDetails(event *corev2.Event) (details interface{}, err error) {
 	if len(config.detailsTemplate) > 0 {
+		if strings.Contains(config.detailsTemplate, "||.") {
+			config.detailsTemplate = strings.ReplaceAll(config.detailsTemplate, "||.", "{{.")
+			config.detailsTemplate = strings.ReplaceAll(config.detailsTemplate, "||", "}}")
+		}
 		detailsStr, err := templates.EvalTemplate("details", config.detailsTemplate, event)
 		if err != nil {
 			return "", fmt.Errorf("failed to evaluate template %s: %v", config.detailsTemplate, err)
@@ -500,8 +512,6 @@ func getDetails(event *corev2.Event) (details interface{}, err error) {
 		details = detailsStr
 		if config.detailsFormat == jsonDetailsFormat.String() {
 			var msgMap interface{}
-			rawDetailsStr := strings.Replace(detailsStr, "\n", `\n`, -1)
-			err = json.Unmarshal([]byte(rawDetailsStr), &msgMap)
 			if err != nil {
 				return "", fmt.Errorf("failed to unmarshal json details: %v", err)
 			}
